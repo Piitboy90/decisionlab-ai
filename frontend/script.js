@@ -268,20 +268,32 @@ function renderSummary(summary) {
   summaryEls.nextSteps.textContent = summary.nextSteps;
   
   summaryEls.questionsDetail.innerHTML = state.results
-    .map((r, i) => `
-      <div class="question-detail">
-        <div class="question-detail-header">
-          <strong>Pregunta ${i + 1}: ${r.skill}</strong>
-          <span class="question-score ${getScoreClass(r.score)}">${r.score}/10</span>
+    .map((r, i) => {
+      // Convierte el string de improvements en HTML con saltos de línea
+      const improvementsHtml = r.improvements
+        .split('→')
+        .filter(point => point.trim().length > 0)
+        .map(point => `<li>${point.trim()}</li>`)
+        .join('');
+      
+      return `
+        <div class="question-detail">
+          <div class="question-detail-header">
+            <strong>Pregunta ${i + 1}: ${r.skill}</strong>
+            <span class="question-score ${getScoreClass(r.score)}">${r.score}/10</span>
+          </div>
+          <p style="color: var(--color-text-secondary); font-size: 0.9rem; margin-bottom: 12px;">
+            <em>${r.situation}</em>
+          </p>
+          <p style="margin-bottom: 12px;"><strong>Tu respuesta:</strong> ${r.userAnswer}</p>
+          <div style="margin-bottom: 12px;">
+            <strong style="display: block; margin-bottom: 8px;">Mejoras sugeridas:</strong>
+            <ul class="improvements-list">${improvementsHtml}</ul>
+          </div>
+          <p style="color: var(--color-success); font-size: 0.9rem; margin-top: 12px; padding: 12px; background: var(--color-success-light); border-radius: var(--radius-md);"><strong>Respuesta modelo:</strong> ${r.betterAnswer}</p>
         </div>
-        <p style="color: var(--color-text-secondary); font-size: 0.9rem; margin-bottom: 8px;">
-          <em>${r.situation}</em>
-        </p>
-        <p style="margin-bottom: 8px;"><strong>Tu respuesta:</strong> ${r.userAnswer}</p>
-        <p style="color: var(--color-text-secondary); font-size: 0.9rem;"><strong>Mejora sugerida:</strong> ${r.improvements}</p>
-        <p style="color: var(--color-success); font-size: 0.9rem; margin-top: 8px;"><strong>Respuesta modelo:</strong> ${r.betterAnswer}</p>
-      </div>
-    `)
+      `;
+    })
     .join("");
 }
 

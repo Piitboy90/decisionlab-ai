@@ -88,8 +88,8 @@ DEVUELVE SOLO JSON VÁLIDO con esta estructura exacta (sin markdown, sin texto a
     const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [{ role: "user", content: prompt }],
-      max_tokens: 3000,
-      temperature: 0.9,
+      max_tokens: 2000,
+      temperature: 0.85,
     });
 
     const rawText = response.choices[0].message.content;
@@ -127,60 +127,76 @@ app.post("/api/analyze", async (req, res) => {
       });
     }
 
-    const prompt = `Eres un evaluador senior especializado en "${context}". Has formado a más de 5.000 profesionales en este sector. Tu evaluación es RIGUROSA pero CONSTRUCTIVA. No regalas notas ni suavizas críticas.
+  const prompt = `Eres un evaluador senior especializado en "${context}". Has formado a más de 5.000 profesionales en este sector. Tu evaluación es DEMOLEDORA cuando hace falta y siempre ANCLADA al texto literal del usuario. NUNCA das feedback genérico tipo "sé más empático" o "escucha activamente".
 
-CONTEXTO DEL ESCENARIO: ${situation}
+CONTEXTO DEL ESCENARIO:
+${situation}
 
-LO QUE DIJO EL CLIENTE: "${customerMessage}"
+LO QUE DIJO EL CLIENTE/INTERLOCUTOR:
+"${customerMessage}"
 
-PREGUNTA EVALUADA: ${question}
+PREGUNTA EVALUADA:
+${question}
 
 SKILL EVALUADO: ${skill}
 
-RESPUESTA DEL PROFESIONAL: "${userResponse}"
+═══════════════════════════════════════════════════════════════
+RESPUESTA TEXTUAL DEL PROFESIONAL EN FORMACIÓN:
+"${userResponse}"
+═══════════════════════════════════════════════════════════════
 
-INSTRUCCIONES DE EVALUACIÓN:
+REGLAS NO NEGOCIABLES PARA "improvements":
 
-1. EVALÚA COMO UN EXPERTO DEL SECTOR. No como un coach genérico.
-   - Si es hostelería: piensa como un Director de F&B de un 5 estrellas.
-   - Si es ventas: piensa como un Sales Director que cierra deals de 500K€.
-   - Si es atención médica: piensa como un médico con experiencia en bedside manner.
+1. CADA punto DEBE empezar con "→" seguido de salto de línea (\\n)
+2. CADA punto DEBE citar LITERALMENTE palabras o frases que el usuario USÓ entre comillas
+3. CADA punto DEBE explicar POR QUÉ esa frase específica falla (impacto real, riesgo legal, percepción del cliente)
+4. CADA punto DEBE proponer la frase EXACTA sustitutiva entre comillas
+5. PROHIBIDO usar frases vacías como: "escuchar activamente", "mostrar empatía", "ser más profesional", "ofrecer una solución concreta"
+6. SI el usuario dijo algo legalmente peligroso, MENCIONA la normativa exacta (LOPDGDD, LMV, Ley General Defensa Consumidores, etc.)
 
-2. SÉ CRÍTICO Y RIGUROSO. La gente aprende de feedback honesto.
-   - Si la respuesta es mediocre, dilo. Score 4-6.
-   - Si es excelente, justifica por qué. Score 8-10.
-   - Si es peligrosa (legal/reputacional), score 1-3.
+EJEMPLO DE LO QUE NO DEBES HACER (genérico):
+"1. Escuchar activamente al cliente.
+2. Mostrar empatía.
+3. Ofrecer una solución concreta."
 
-3. DETECTA RED FLAGS REALES:
-   - Promesas que la empresa no puede cumplir
-   - Frases legalmente peligrosas
-   - Tono condescendiente o defensivo
-   - Falta de empatía
-   - Soluciones que escalan el problema
+EJEMPLO DE LO QUE SÍ DEBES HACER (específico, anclado, con impacto):
 
-4. LA "betterAnswer" DEBE SER CREATIVA Y HUMANA:
-   - NO uses fórmulas tipo "Entiendo perfectamente su preocupación..."
-   - Adapta el tono al sector
-   - Incluye lenguaje corporal o tono cuando aplique
-   - Que se sienta como algo que diría un PRO del sector
+Si el usuario dijo: "eso le pasa por no cuidar de su movil, ha sido muy descuidado"
 
-5. "improvements" debe ser ACCIONABLE: 2-3 mejoras CONCRETAS.
+improvements:
+"→ Tu frase 'eso le pasa por no cuidar' es directamente CULPABILIZADORA. Estás humillando al cliente. En España, la Ley General de Defensa de Consumidores obliga al vendedor a tratar la queja con neutralidad. Sustituye por: 'Entiendo tu preocupación, Juan. Vamos a revisar el dispositivo a fondo para entender qué pasó'.
+
+→ Decir 'ha sido muy descuidado' es un JUICIO DE VALOR sin pruebas. Esto puede convertirse en un caso de mala atención que el cliente comparta en RRSS o reseña Google con captura de pantalla. Cambia por: 'Hace solo una semana que lo compraste, vamos a estudiar si esto puede entrar en garantía'.
+
+→ NO has ofrecido ninguna acción concreta. Tu respuesta termina en culpa, no en solución. Cierra siempre con un siguiente paso tangible: 'Voy a tomar nota del incidente, examinar el equipo en taller técnico, y te llamo personalmente mañana antes de las 14h con la respuesta. ¿Te parece bien?'"
+
+INSTRUCCIONES PARA SCORE:
+- 1-3: Respuesta peligrosa (legal/reputacional/cliente perdido)
+- 4-6: Mediocre, le falta empatía o profundidad
+- 7-8: Buena, con margen de mejora
+- 9-10: Excelente
+
+LA "betterAnswer" DEBE SER:
+- Creativa, humana, adaptada al sector específico
+- NO usar fórmulas genéricas
+- Específica al cliente y situación, no plantilla
+- Incluir un siguiente paso tangible
 
 DEVUELVE SOLO JSON VÁLIDO (sin markdown, sin texto adicional):
 
 {
   "score": <número entero 1-10>,
-  "tone": "<análisis del tono utilizado en 1-2 frases>",
-  "risks": "<riesgos detectados. Si no hay, di 'Sin riesgos detectados'>",
-  "improvements": "<2-3 mejoras CONCRETAS y accionables>",
-  "betterAnswer": "<respuesta modelo creativa, humana, adaptada al sector>"
+  "tone": "<análisis del tono utilizado en 1-2 frases, citando palabras del usuario>",
+  "risks": "<riesgos detectados citando frase exacta del usuario. Si no hay, di 'Sin riesgos detectados'>",
+  "improvements": "<EXACTAMENTE 3 puntos numerados con '→' al inicio de cada uno separados por \\n\\n. Cada punto cita literal del usuario + por qué falla + frase sustitutiva exacta. NUNCA genérico.>",
+  "betterAnswer": "<respuesta modelo creativa, humana, adaptada al sector específico>"
 }`;
 
     const response = await client.chat.completions.create({
       model: "gpt-4o",
       messages: [{ role: "user", content: prompt }],
       max_tokens: 1500,
-      temperature: 0.7,
+      temperature: 0.85,
     });
 
     const rawText = response.choices[0].message.content;
