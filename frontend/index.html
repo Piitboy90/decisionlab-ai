@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DecisionLab AI | Simulador de formación profesional con IA</title>
+  <meta name="description" content="Entrena respuestas profesionales ante situaciones reales de empresa con IA.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- HEADER -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <header class="header">
+      <div class="logo">
+        <span class="logo-icon">🎯</span>
+        <h1>DecisionLab <span class="logo-accent">AI</span></h1>
+      </div>
+      <p class="tagline">Simulador de formación profesional con IA</p>
+    </header>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- VISTA 1: CONFIGURACIÓN -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <section id="view-config" class="view view-active">
+      <div class="card">
+        <h2>Configura tu entrenamiento</h2>
+        <p class="subtitle">
+          Diseñado para profesionales que quieren prepararse ante situaciones reales:
+          atención al cliente, ventas, gestión de conflictos, reputación.
+        </p>
+
+        <div class="form-group">
+          <label for="contextInput">
+            <strong>Contexto profesional</strong>
+            <span class="hint">Sé específico para mejores escenarios</span>
+          </label>
+          <input
+            type="text"
+            id="contextInput"
+            placeholder="Ej: Director de hotel boutique en Madrid"
+            autocomplete="off"
+          >
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="difficultySelect"><strong>Nivel de dificultad</strong></label>
+            <select id="difficultySelect">
+              <option value="Fácil">🟢 Fácil</option>
+              <option value="Media" selected>🟡 Media</option>
+              <option value="Difícil">🔴 Difícil</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="questionCountSelect"><strong>Nº de situaciones</strong></label>
+            <select id="questionCountSelect">
+              <option value="5" selected>5 situaciones</option>
+              <option value="10">10 situaciones</option>
+            </select>
+          </div>
+        </div>
+
+        <button id="startQuizBtn" class="btn btn-primary btn-large">
+          ⚡ Generar entrenamiento con IA
+        </button>
+
+        <p id="loadingMsg" class="loading-msg hidden">
+          🤖 Generando situaciones realistas...
+        </p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- VISTA 2: QUIZ ACTIVO -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <section id="view-quiz" class="view hidden">
+      <div class="card">
+
+        <!-- Progreso -->
+        <div class="progress-bar">
+          <div class="progress-info">
+            <span id="progressLabel">Pregunta 1 de 5</span>
+            <span id="skillBadge" class="skill-badge"></span>
+          </div>
+          <div class="progress-track">
+            <div id="progressFill" class="progress-fill"></div>
+          </div>
+        </div>
+
+        <!-- Situación -->
+        <div class="situation-block">
+          <h3>📋 Situación</h3>
+          <p id="situationText"></p>
+        </div>
+
+        <!-- Mensaje del cliente -->
+        <div class="customer-message">
+          <div class="customer-avatar">👤</div>
+          <div class="customer-bubble">
+            <p id="customerMessageText"></p>
+          </div>
+        </div>
+
+        <!-- Pregunta -->
+        <div class="question-block">
+          <h3 id="questionText"></h3>
+        </div>
+
+        <!-- Respuesta del usuario -->
+        <div class="form-group">
+          <label for="userResponseTextarea">
+            <strong>Tu respuesta</strong>
+            <span class="hint">Sé específico y profesional</span>
+          </label>
+          <textarea
+            id="userResponseTextarea"
+            placeholder="Escribe tu respuesta o usa el dictado por voz..."
+            rows="6"
+          ></textarea>
+          <div class="voice-controls">
+            <button id="startVoiceBtn" class="btn btn-secondary">
+              🎙️ Dictar por voz
+            </button>
+            <button id="stopVoiceBtn" class="btn btn-secondary hidden">
+              ⏹️ Detener dictado
+            </button>
+            <p id="voiceStatus" class="voice-status"></p>
+          </div>
+        </div>
+
+        <button id="submitAnswerBtn" class="btn btn-primary btn-large">
+          📊 Evaluar respuesta y continuar
+        </button>
+
+        <p id="analyzeLoadingMsg" class="loading-msg hidden">
+          🤖 Analizando tu respuesta...
+        </p>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- VISTA 3: RESUMEN FINAL -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <section id="view-summary" class="view hidden">
+      <div class="card">
+        <h2>📈 Informe Ejecutivo</h2>
+        <p class="subtitle">Análisis completo de tu desempeño</p>
+
+        <!-- Score destacado -->
+        <div class="score-hero">
+          <div class="score-circle">
+            <span id="averageScore">0</span>
+            <span class="score-max">/10</span>
+          </div>
+          <div class="score-info">
+            <h3 id="overallLevel">Nivel</h3>
+            <p id="readiness"></p>
+          </div>
+        </div>
+
+        <!-- Bloques de análisis -->
+        <div class="summary-blocks">
+          <div class="summary-block summary-strengths">
+            <h4>✅ Fortalezas detectadas</h4>
+            <p id="strengthsText"></p>
+          </div>
+
+          <div class="summary-block summary-gaps">
+            <h4>⚠️ Áreas críticas a mejorar</h4>
+            <p id="criticalGapsText"></p>
+          </div>
+
+          <div class="summary-block summary-next">
+            <h4>🎯 Próximos pasos</h4>
+            <p id="nextStepsText"></p>
+          </div>
+        </div>
+
+        <!-- Detalle por pregunta -->
+        <details class="detail-block">
+          <summary>📋 Ver detalle pregunta a pregunta</summary>
+          <div id="questionsDetail"></div>
+        </details>
+
+        <button id="restartBtn" class="btn btn-primary btn-large">
+          🔄 Empezar nuevo entrenamiento
+        </button>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <!-- FOOTER -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <footer class="footer">
+      <p>Powered by <strong>OpenAI GPT-4o</strong> · Built by Peter Siteng</p>
+    </footer>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

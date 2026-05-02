@@ -1,0 +1,19 @@
+{
+  "name": "decisionlab-ai-backend",
+  "version": "1.0.0",
+  "description": "Backend para DecisionLab AI - Simulador de formación con IA",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "author": "Peter Siteng Tumpap",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "openai": "^6.35.0"
+  }
+}
