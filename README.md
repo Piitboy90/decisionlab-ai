@@ -230,7 +230,7 @@ PORT=3000
 ### 2. Temperature ajustada
 
 - **0.9** en quiz → variedad creativa de situaciones
-- **0.7** en análisis → balance entre rigor y respuestas humanas
+- **0.85** en análisis → balance entre rigor y respuestas humanas
 - **0.6** en resumen → informe preciso, no creativo
 
 ### 3. Anchoring + Counter-example en feedback
