@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import rateLimit from "express-rate-limit";
 import OpenAI from "openai";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -9,14 +10,34 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, ".env") });
 
 const app = express();
+app.set("trust proxy", 1);
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-app.use(cors());
-app.use(express.json());
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "https://decisionlab-ai-production.up.railway.app,http://localhost:3000")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    cb(new Error(`Origen no permitido: ${origin}`));
+  },
+}));
+
+app.use(express.json({ limit: "32kb" }));
 app.use(express.static(path.join(__dirname, "frontend")));
+
+const aiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Demasiadas peticiones desde esta IP. Espera unos minutos." },
+});
 
 function parseJsonResponse(rawText) {
   try {
@@ -31,13 +52,13 @@ function parseJsonResponse(rawText) {
 }
 
 // ENDPOINT 1: Generar quiz
-app.post("/api/generate-quiz", async (req, res) => {
+app.post("/api/generate-quiz", aiLimiter, async (req, res) => {
   try {
     const { context, difficulty, questionCount } = req.body;
 
-    if (!context || context.trim().length < 5) {
+    if (!context || typeof context !== "string" || context.trim().length < 5 || context.length > 500) {
       return res.status(400).json({
-        error: "Indica un contexto profesional de al menos 5 caracteres.",
+        error: "El contexto debe tener entre 5 y 500 caracteres.",
       });
     }
 
@@ -111,13 +132,13 @@ DEVUELVE SOLO JSON VÁLIDO con esta estructura exacta (sin markdown, sin texto a
 });
 
 // ENDPOINT 2: Analizar respuesta
-app.post("/api/analyze", async (req, res) => {
+app.post("/api/analyze", aiLimiter, async (req, res) => {
   try {
     const { userResponse, situation, customerMessage, question, context, skill } = req.body;
 
-    if (!userResponse || userResponse.trim().length < 15) {
+    if (!userResponse || typeof userResponse !== "string" || userResponse.trim().length < 15 || userResponse.length > 2000) {
       return res.status(400).json({
-        error: "La respuesta es demasiado corta para evaluarla profesionalmente.",
+        error: "La respuesta debe tener entre 15 y 2000 caracteres.",
       });
     }
 
@@ -218,13 +239,13 @@ DEVUELVE SOLO JSON VÁLIDO (sin markdown, sin texto adicional):
 });
 
 // ENDPOINT 3: Resumen final
-app.post("/api/final-summary", async (req, res) => {
+app.post("/api/final-summary", aiLimiter, async (req, res) => {
   try {
     const { context, results } = req.body;
 
-    if (!results || !Array.isArray(results) || results.length === 0) {
+    if (!results || !Array.isArray(results) || results.length === 0 || results.length > 20) {
       return res.status(400).json({
-        error: "No hay resultados para analizar.",
+        error: "Resultados inválidos (entre 1 y 20).",
       });
     }
 
@@ -292,8 +313,13 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// FALLBACK
-app.use((req, res) => {
+// 404 explícito para rutas /api/* que no existen (devuelve JSON, no el HTML)
+app.use("/api", (req, res) => {
+  res.status(404).json({ error: "Endpoint no encontrado." });
+});
+
+// SPA fallback solo en GET (Express 5: la sintaxis wildcard requiere nombre)
+app.get("/{*splat}", (req, res) => {
   res.sendFile(path.join(__dirname, "frontend/index.html"));
 });
 
