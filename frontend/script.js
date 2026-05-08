@@ -62,30 +62,44 @@ const summaryEls = {
  
 /**
  * animateHeaderEntry()
- * Anima la entrada del header (logo, título, tagline) cuando la página carga
- * Secuencia: logo aparece → título se desliza → tagline fade-in
+ * animateHeaderEntry()
+ * Anima: 1) logo con dardo clavándose, 2) título, 3) tagline
  */
 function animateHeaderEntry() {
   const timeline = anime.timeline({ easing: 'easeOutQuad' });
   
-  timeline
-    .add({
-      targets: '.logo-icon',
-      opacity: [0, 1],
-      scale: [0.8, 1],
-      duration: 600,
-    })
-    .add({
-      targets: '.logo h1',
-      opacity: [0, 1],
-      translateY: [-20, 0],
-      duration: 600,
-    }, '-=400')
-    .add({
-      targets: '.tagline',
-      opacity: [0, 1],
-      duration: 400,
-    }, '-=300');
+  // 1️⃣ FASE 1: El dardo cae y se clava (600ms)
+  timeline.add({
+    targets: '.logo-dart',
+    top: ['-100px', '0px'],      // cae desde arriba hasta el centro
+    opacity: [0, 1],              // aparece mientras cae
+    rotate: [-45, 0],             // se endereza al clavarse
+    duration: 600,
+    easing: 'easeInOutQuad',
+  });
+  
+  // 2️⃣ FASE 2: Pequeño "rebote" del dardo al clavarse (efecto impacto)
+  timeline.add({
+    targets: '.logo-dart',
+    scale: [1, 0.95, 1],          // se comprime y vuelve a su tamaño
+    duration: 150,
+    easing: 'easeInOutQuad',
+  }, '-=50'); // solapa 50ms con la animación anterior
+  
+  // 3️⃣ FASE 3: El título aparece y se desliza (mientras cae el dardo)
+  timeline.add({
+    targets: '.logo h1',
+    opacity: [0, 1],
+    translateY: [-20, 0],
+    duration: 600,
+  }, '-=550'); // empieza casi al mismo tiempo que el dardo
+  
+  // 4️⃣ FASE 4: El tagline aparece (después del título)
+  timeline.add({
+    targets: '.tagline',
+    opacity: [0, 1],
+    duration: 400,
+  }, '-=300');
 }
  
 /**
