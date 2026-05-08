@@ -130,9 +130,40 @@ body {
   margin-bottom: var(--space-sm);
 }
 
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.logo-animation-container {
+  position: relative;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: inline-block;
+}
+
 .logo-icon {
   font-size: 2.5rem;
   filter: drop-shadow(0 0 12px var(--color-accent-glow));
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.logo-target {
+  opacity: 1;
+  z-index: 1;
+}
+
+.logo-dart {
+  opacity: 0;
+  z-index: 2;
+  top: -120px;
+  transform: translateX(-50%) translateY(0) rotate(-45deg);
+  left: 50%;
 }
 
 .logo h1 {
