@@ -548,12 +548,22 @@ if (!SpeechRecognition) {
 // INICIALIZACIÓN
 // ═══════════════════════════════════════════════════════════════════════════════
  
-window.addEventListener("DOMContentLoaded", () => {
-  animateHeaderEntry(); // anima el header cuando carga
-  configEls.contextInput.focus();
-});
- 
-console.log("✅ DecisionLab AI - Frontend cargado");
-console.log(`🚀 API Base URL: ${API_BASE_URL}`);
-console.log("🎬 Anime.js activado para transiciones fluidas");
+// Esperar a que el DOM esté completamente cargado
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
+
+function initApp() {
+  // Verificar que los elementos existen antes de usarlos
+  if (configEls.contextInput) {
+    configEls.contextInput.focus();
+    animateHeaderEntry();
+  }
+  
+  console.log("✅ DecisionLab AI - Frontend cargado");
+  console.log(`🚀 API Base URL: ${API_BASE_URL}`);
+  console.log("🎬 Anime.js activado para transiciones fluidas");
+}
  
