@@ -547,23 +547,36 @@ if (!SpeechRecognition) {
 // ═══════════════════════════════════════════════════════════════════════════════
 // INICIALIZACIÓN
 // ═══════════════════════════════════════════════════════════════════════════════
- 
-// Esperar a que el DOM esté completamente cargado
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initApp);
-} else {
-  initApp();
-}
 
 function initApp() {
-  // Verificar que los elementos existen antes de usarlos
-  if (configEls.contextInput) {
-    configEls.contextInput.focus();
-    animateHeaderEntry();
-  }
-  
   console.log("✅ DecisionLab AI - Frontend cargado");
   console.log(`🚀 API Base URL: ${API_BASE_URL}`);
   console.log("🎬 Anime.js activado para transiciones fluidas");
+  
+  // Verificar que anime existe
+  if (typeof anime !== 'undefined') {
+    console.log("✅ Anime.js disponible en window.anime");
+    
+    // Pequeño delay para asegurar que anime está listo
+    setTimeout(() => {
+      if (configEls.contextInput) {
+        configEls.contextInput.focus();
+        animateHeaderEntry();
+      }
+    }, 200);
+  } else {
+    console.error("❌ Anime.js no se cargó correctamente");
+    if (configEls.contextInput) {
+      configEls.contextInput.focus();
+    }
+  }
+}
+
+// Esperar a que el DOM esté completamente listo
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  // Si el script se carga después del DOMContentLoaded
+  setTimeout(initApp, 100);
 }
  
