@@ -130,32 +130,9 @@ body {
   margin-bottom: var(--space-sm);
 }
 
-.logo-animation-container {
-  position: relative;
-  width: 5rem;  /* ← aumentado para que quepa el dardo */
-  height: 2.5rem;
-  display: inline-block;
-}
-
 .logo-icon {
   font-size: 2.5rem;
   filter: drop-shadow(0 0 12px var(--color-accent-glow));
-  position: absolute;
-  top: 0;
-}
-
-.logo-target {
-  opacity: 1;
-  z-index: 1;
-  left: 1rem;  /* ← la diana en el centro-derecha */
-}
-
-.logo-dart {
-  opacity: 0;
-  z-index: 2;
-  top: -120px;
-  left: 0;  /* ← el dardo empieza a la izquierda */
-  transform: rotate(-45deg);
 }
 
 .logo h1 {

@@ -68,34 +68,23 @@ const summaryEls = {
 function animateHeaderEntry() {
   const timeline = anime.timeline({ easing: 'easeOutQuad' });
   
-  // 1️⃣ El dardo cae diagonalmente hacia la diana
+  // Logo aparece
   timeline.add({
-    targets: '.logo-dart',
-    top: ['−120px', '0px'],      // cae desde arriba
-    left: ['0rem', '1rem'],       // se mueve hacia la derecha (hacia la diana)
-    opacity: [0, 1],              // aparece mientras cae
-    rotate: [-45, 0],             // se endereza
-    duration: 700,
-    easing: 'easeInOutQuad',
+    targets: '.logo-icon',
+    opacity: [0, 1],
+    scale: [0.8, 1],
+    duration: 600,
   });
   
-  // 2️⃣ Rebote al impacto
-  timeline.add({
-    targets: '.logo-dart',
-    scale: [1, 0.9, 1],
-    duration: 150,
-    easing: 'easeInOutQuad',
-  }, '-=50');
-  
-  // 3️⃣ Título aparece
+  // Título aparece
   timeline.add({
     targets: '.logo h1',
     opacity: [0, 1],
     translateY: [-20, 0],
     duration: 600,
-  }, '-=550');
+  }, '-=400');
   
-  // 4️⃣ Tagline aparece
+  // Tagline aparece
   timeline.add({
     targets: '.tagline',
     opacity: [0, 1],
