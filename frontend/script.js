@@ -1,9 +1,9 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// DecisionLab AI - Frontend Logic
+// DecisionLab AI - Frontend Logic with Anime.js
 // ═══════════════════════════════════════════════════════════════════════════════
-
+ 
 const API_BASE_URL = window.location.origin;
-
+ 
 const state = {
   currentView: "config",
   context: "",
@@ -13,15 +13,15 @@ const state = {
   currentQuestionIndex: 0,
   results: [],
 };
-
+ 
 const $ = (selector) => document.querySelector(selector);
-
+ 
 const views = {
   config: $("#view-config"),
   quiz: $("#view-quiz"),
   summary: $("#view-summary"),
 };
-
+ 
 const configEls = {
   contextInput: $("#contextInput"),
   difficultySelect: $("#difficultySelect"),
@@ -29,7 +29,7 @@ const configEls = {
   startBtn: $("#startQuizBtn"),
   loadingMsg: $("#loadingMsg"),
 };
-
+ 
 const quizEls = {
   progressLabel: $("#progressLabel"),
   progressFill: $("#progressFill"),
@@ -44,7 +44,7 @@ const quizEls = {
   submitBtn: $("#submitAnswerBtn"),
   loadingMsg: $("#analyzeLoadingMsg"),
 };
-
+ 
 const summaryEls = {
   averageScore: $("#averageScore"),
   overallLevel: $("#overallLevel"),
@@ -55,38 +55,179 @@ const summaryEls = {
   questionsDetail: $("#questionsDetail"),
   restartBtn: $("#restartBtn"),
 };
-
+ 
+// ═══════════════════════════════════════════════════════════════════════════════
+// ANIMACIONES CON ANIME.JS
+// ═══════════════════════════════════════════════════════════════════════════════
+ 
+/**
+ * animateHeaderEntry()
+ * Anima la entrada del header (logo, título, tagline) cuando la página carga
+ * Secuencia: logo aparece → título se desliza → tagline fade-in
+ */
+function animateHeaderEntry() {
+  const timeline = anime.timeline({ easing: 'easeOutQuad' });
+  
+  timeline
+    .add({
+      targets: '.logo-icon',
+      opacity: [0, 1],
+      scale: [0.8, 1],
+      duration: 600,
+    })
+    .add({
+      targets: '.logo h1',
+      opacity: [0, 1],
+      translateY: [-20, 0],
+      duration: 600,
+    }, '-=400')
+    .add({
+      targets: '.tagline',
+      opacity: [0, 1],
+      duration: 400,
+    }, '-=300');
+}
+ 
+/**
+ * animateViewTransition(inElements)
+ * Anima la entrada de elementos cuando cambias de vista
+ * Útil para: preguntas, resumen, bloques de contenido
+ * @param {string|HTMLElement} inElements - Selector o elemento a animar
+ */
+function animateViewTransition(inElements) {
+  anime({
+    targets: inElements,
+    opacity: [0, 1],
+    translateY: [20, 0],
+    duration: 600,
+    easing: 'easeOutQuad',
+  });
+}
+ 
+/**
+ * animateQuestionBlocks()
+ * Anima la entrada de los bloques de la pregunta en cascada
+ * Situación → Cliente → Pregunta → TextArea aparecen uno tras otro (stagger)
+ */
+function animateQuestionBlocks() {
+  anime({
+    targets: '.situation-block, .customer-message, .question-block, .form-group, .voice-controls',
+    opacity: [0, 1],
+    translateY: [15, 0],
+    duration: 500,
+    delay: anime.stagger(80), // cada elemento espera 80ms más que el anterior
+    easing: 'easeOutQuad',
+  });
+}
+ 
+/**
+ * animateCounterScore(fromValue, toValue, targetSelector)
+ * Anima un contador numérico de A a B (ej: 0 → 8.2)
+ * Perfecto para mostrar el score final
+ * @param {number} fromValue - valor inicial
+ * @param {number} toValue - valor final
+ * @param {string} targetSelector - elemento donde mostrar el número
+ */
+function animateCounterScore(fromValue, toValue, targetSelector) {
+  const counter = { value: fromValue };
+  
+  anime({
+    targets: counter,
+    value: toValue,
+    duration: 1200,
+    easing: 'easeOutQuad',
+    round: 1, // redondea a entero para que no veas decimales raros
+    update: () => {
+      $(targetSelector).textContent = counter.value;
+    },
+  });
+}
+ 
+/**
+ * animateSummaryBlocks()
+ * Anima la entrada de los bloques de resumen (Fortalezas, Áreas críticas, Próximos pasos)
+ * En cascada con stagger para efecto premium
+ */
+function animateSummaryBlocks() {
+  const timeline = anime.timeline({ easing: 'easeOutQuad' });
+  
+  // Primero el score circle (especial porque está flotante)
+  timeline.add({
+    targets: '.score-circle',
+    opacity: [0, 1],
+    scale: [0.8, 1],
+    duration: 600,
+  });
+  
+  // Luego los bloques de análisis en cascada
+  timeline.add({
+    targets: '.summary-block',
+    opacity: [0, 1],
+    translateX: [-20, 0],
+    duration: 500,
+    delay: anime.stagger(100),
+  }, '-=300');
+}
+ 
+/**
+ * animateLoadingDot()
+ * Anima los puntos de carga (...) mientras esperas respuesta de IA
+ * Efecto de "pulsing" en el mensaje de carga
+ */
+function animateLoadingDot(selector) {
+  anime({
+    targets: selector,
+    opacity: [1, 0.5, 1],
+    duration: 1500,
+    easing: 'easeInOutQuad',
+    loop: true, // repite infinitamente
+  });
+}
+ 
+// ═══════════════════════════════════════════════════════════════════════════════
+// FUNCIONES AUXILIARES (sin cambios)
+// ═══════════════════════════════════════════════════════════════════════════════
+ 
 function showView(viewName) {
   Object.values(views).forEach((v) => v.classList.add("hidden"));
   views[viewName].classList.remove("hidden");
   state.currentView = viewName;
   window.scrollTo({ top: 0, behavior: "smooth" });
   console.log(`🔄 Vista activa: ${viewName}`);
+  
+  // Disparar animaciones según la vista
+  if (viewName === "quiz") {
+    animateQuestionBlocks();
+  } else if (viewName === "summary") {
+    animateSummaryBlocks();
+  }
 }
-
+ 
 function setLoading(button, loadingMsg, isLoading) {
   button.disabled = isLoading;
   if (isLoading) {
     loadingMsg.classList.remove("hidden");
+    animateLoadingDot(loadingMsg);
   } else {
     loadingMsg.classList.add("hidden");
+    anime.remove(loadingMsg); // cancela la animación infinita
   }
 }
-
+ 
 function showError(message) {
   alert(`❌ ${message}`);
 }
-
+ 
 function getScoreClass(score) {
   if (score >= 8) return "score-high";
   if (score >= 5) return "score-mid";
   return "score-low";
 }
-
+ 
 // ═══════════════════════════════════════════════════════════════════════════════
 // VISTA 1: GENERAR QUIZ
 // ═══════════════════════════════════════════════════════════════════════════════
-
+ 
 configEls.startBtn.addEventListener("click", async () => {
   const context = configEls.contextInput.value.trim();
   
@@ -135,11 +276,11 @@ configEls.startBtn.addEventListener("click", async () => {
     setLoading(configEls.startBtn, configEls.loadingMsg, false);
   }
 });
-
+ 
 // ═══════════════════════════════════════════════════════════════════════════════
 // VISTA 2: RENDERIZAR PREGUNTA ACTUAL
 // ═══════════════════════════════════════════════════════════════════════════════
-
+ 
 function renderCurrentQuestion() {
   const q = state.questions[state.currentQuestionIndex];
   const total = state.questions.length;
@@ -157,13 +298,21 @@ function renderCurrentQuestion() {
   quizEls.voiceStatus.textContent = "";
   quizEls.textarea.focus();
   
+  // Animar la barra de progreso
+  anime({
+    targets: quizEls.progressFill,
+    width: `${(current / total) * 100}%`,
+    duration: 600,
+    easing: 'easeOutQuad',
+  });
+  
   console.log(`📋 Pregunta ${current}/${total}: ${q.skill}`);
 }
-
+ 
 // ═══════════════════════════════════════════════════════════════════════════════
 // VISTA 2: EVALUAR Y CONTINUAR
 // ═══════════════════════════════════════════════════════════════════════════════
-
+ 
 quizEls.submitBtn.addEventListener("click", async () => {
   const userResponse = quizEls.textarea.value.trim();
   
@@ -211,6 +360,7 @@ quizEls.submitBtn.addEventListener("click", async () => {
     
     if (state.currentQuestionIndex < state.questions.length) {
       renderCurrentQuestion();
+      animateQuestionBlocks(); // re-anima los bloques para la siguiente pregunta
     } else {
       await generateFinalSummary();
     }
@@ -222,11 +372,11 @@ quizEls.submitBtn.addEventListener("click", async () => {
     setLoading(quizEls.submitBtn, quizEls.loadingMsg, false);
   }
 });
-
+ 
 // ═══════════════════════════════════════════════════════════════════════════════
 // VISTA 3: GENERAR RESUMEN FINAL
 // ═══════════════════════════════════════════════════════════════════════════════
-
+ 
 async function generateFinalSummary() {
   setLoading(quizEls.submitBtn, quizEls.loadingMsg, true);
   
@@ -249,6 +399,10 @@ async function generateFinalSummary() {
     renderSummary(data);
     showView("summary");
     
+    // Animar el contador del score final
+    const finalScore = parseFloat(data.averageScore);
+    animateCounterScore(0, finalScore, "#averageScore");
+    
     console.log("✅ Resumen final generado");
     
   } catch (error) {
@@ -258,9 +412,9 @@ async function generateFinalSummary() {
     setLoading(quizEls.submitBtn, quizEls.loadingMsg, false);
   }
 }
-
+ 
 function renderSummary(summary) {
-  summaryEls.averageScore.textContent = summary.averageScore;
+  summaryEls.averageScore.textContent = "0"; // valor inicial para la animación
   summaryEls.overallLevel.textContent = summary.overallLevel;
   summaryEls.readiness.textContent = summary.professionalReadiness;
   summaryEls.strengths.textContent = summary.strengths;
@@ -269,7 +423,6 @@ function renderSummary(summary) {
   
   summaryEls.questionsDetail.innerHTML = state.results
     .map((r, i) => {
-      // Convierte el string de improvements en HTML con saltos de línea
       const improvementsHtml = r.improvements
         .split('→')
         .filter(point => point.trim().length > 0)
@@ -296,11 +449,11 @@ function renderSummary(summary) {
     })
     .join("");
 }
-
+ 
 // ═══════════════════════════════════════════════════════════════════════════════
 // VISTA 3: REINICIAR
 // ═══════════════════════════════════════════════════════════════════════════════
-
+ 
 summaryEls.restartBtn.addEventListener("click", () => {
   state.context = "";
   state.questions = [];
@@ -316,14 +469,14 @@ summaryEls.restartBtn.addEventListener("click", () => {
   
   console.log("🔄 Reset completo");
 });
-
+ 
 // ═══════════════════════════════════════════════════════════════════════════════
 // RECONOCIMIENTO DE VOZ
 // ═══════════════════════════════════════════════════════════════════════════════
-
+ 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
-
+ 
 if (!SpeechRecognition) {
   quizEls.startVoiceBtn.disabled = true;
   quizEls.startVoiceBtn.textContent = "🚫 Voz no disponible";
@@ -390,7 +543,17 @@ if (!SpeechRecognition) {
     recognition.stop();
   });
 }
-
+ 
+// ═══════════════════════════════════════════════════════════════════════════════
+// INICIALIZACIÓN
+// ═══════════════════════════════════════════════════════════════════════════════
+ 
+window.addEventListener("DOMContentLoaded", () => {
+  animateHeaderEntry(); // anima el header cuando carga
+  configEls.contextInput.focus();
+});
+ 
 console.log("✅ DecisionLab AI - Frontend cargado");
 console.log(`🚀 API Base URL: ${API_BASE_URL}`);
-configEls.contextInput.focus();
+console.log("🎬 Anime.js activado para transiciones fluidas");
+ 
